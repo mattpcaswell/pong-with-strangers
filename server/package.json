@@ -1,0 +1,25 @@
+{
+  "name": "pong-with-strangers-server",
+  "version": "1.0.0",
+  "description": "Play pong with strangers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattpcaswell/pong-with-strangers.git"
+  },
+  "keywords": [
+    "pong"
+  ],
+  "author": "Matt Caswell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mattpcaswell/pong-with-strangers/issues"
+  },
+  "homepage": "https://github.com/mattpcaswell/pong-with-strangers#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
