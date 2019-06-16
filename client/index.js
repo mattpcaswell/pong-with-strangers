@@ -1,17 +1,35 @@
 const ws_url = "ws://localhost:8080";
 const ws = new WebSocket(ws_url);
+let username = "";
 
 ws.onopen = () => {
     console.log("ws connection opened");
-    ws.send("sample message from client");
 }
 
 ws.onmessage = message => {
-    console.log("ws message: " + JSON.stringify(message.data));
+    console.log("ws message: " + message.data);
+    msg = JSON.parse(message.data);
+
+    switch (msg.type) {
+        case "username-req-resp":
+            if (!msg.valid) {
+                greeting_element.html('Choose a username - Invalid username');
+                submit_button.removeAttribute('disabled');
+                submit_button.html('submit');
+                username = "";
+            } else {
+                username = msg.username
+                greeting_element.html(username + " - Finding a stranger");
+            }
+            break;
+        case "match":
+            greeting_element.html(username + " - Matched with " + msg.username);
+            break;
+    }
 }
 
 ws.onerror = error => {
-    console.log("ws error: " + JSON.stringify(error));
+    console.log("!!!!! ws error: " + JSON.stringify(error));
 }
 
 let username_input, submit_button, greeting_element;
@@ -36,36 +54,14 @@ function submit_username() {
     username_input.value('');
 
     if (username == '')
-	return;
+        return;
 
     // disable the submit button until we hear back from server
     submit_button.html('submitting...');
     submit_button.attribute('disabled', '');
 
     // Send username to server
-    httpPostAsync('http://localhost:3000/username', {username: username}, function(response) {
-	response = JSON.parse(response);
-
-	if (!response.valid) {
-	    greeting_element.html('Choose a username - Invalid username');
-	    submit_button.removeAttribute('disabled');
-	    submit_button.html('submit');
-	} else {
-	    greeting_element.html(response.username + " - Finding a stranger");
-	}
-    });
-}
-
-function httpPostAsync(theUrl, json, callback) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
-    }
-    xmlHttp.open("POST", theUrl, true); // true for asynchronous 
-    xmlHttp.setRequestHeader("Content-Type", "application/json");
-    console.log("sending: " + json);
-    xmlHttp.send(JSON.stringify(json));
+    ws.send(JSON.stringify({ type: "username-req", username: username }));
 }
 
 function windowResized() {
