@@ -1,6 +1,10 @@
 const express = require('express');
+const WebSocket = require('ws');
+
 const app = express();
 const port = 3000;
+
+const wss = new WebSocket.Server({port: 8080});
 
 const MAX_USERNAME_LEN = 12; // 12 characters
 
@@ -17,7 +21,7 @@ app.post('/username', (req, res) => {
     });
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port, () => console.log(`Listening on port ${port}!`));
 
 app.use(express.static('../client'));
 
@@ -36,3 +40,11 @@ function new_username(username) {
     users.set(username, { username: username });
     return true;
 }
+
+wss.on('connection', ws => {
+    ws.on('message', message => {
+        console.log("ws message: " + message);
+    });
+
+    ws.send("sample message");
+});

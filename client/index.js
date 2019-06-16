@@ -1,10 +1,26 @@
+const ws_url = "ws://localhost:8080";
+const ws = new WebSocket(ws_url);
+
+ws.onopen = () => {
+    console.log("ws connection opened");
+    ws.send("sample message from client");
+}
+
+ws.onmessage = message => {
+    console.log("ws message: " + JSON.stringify(message.data));
+}
+
+ws.onerror = error => {
+    console.log("ws error: " + JSON.stringify(error));
+}
+
 let username_input, submit_button, greeting_element;
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
 
-    let midWidth = windowWidth / 2;
-    let midHeight = windowWidth / 2;
+    let midWidth = (windowWidth / 2) - 150;
+    let midHeight = (windowHeight / 2) - 20;
 
     username_input = createInput();
     username_input.position(midWidth, midHeight);
@@ -26,12 +42,9 @@ function submit_username() {
     submit_button.html('submitting...');
     submit_button.attribute('disabled', '');
 
-
     // Send username to server
     httpPostAsync('http://localhost:3000/username', {username: username}, function(response) {
 	response = JSON.parse(response);
-	console.log("response: " + response);
-	console.log("response.valid: " + response.valid);
 
 	if (!response.valid) {
 	    greeting_element.html('Choose a username - Invalid username');

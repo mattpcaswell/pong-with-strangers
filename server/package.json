@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/mattpcaswell/pong-with-strangers#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "ws": "^7.0.0"
   }
 }
