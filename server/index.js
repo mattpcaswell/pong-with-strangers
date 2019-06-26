@@ -34,12 +34,28 @@ wss.on('connection', ws => {
                 if (is_valid)
                     start_matchmaking(requested_username);
                 break;
+            case "ready":
+                // set the user ready
+                let user = users.get(msg.username);
+                user.ready = true;
+                users.set(msg.username, user);
+
+                // check if other user ready
+                let game_users = games.get(msg.game_id).users;
+                let other_username = msg.username == game_users[0] ? game_users[1] : game_users[0];
+                let other_user = users.get(other_username);
+                if (other_user.ready)
+                    start_game(msg.game_id);
+
+                break;
         }
     });
 });
 
 let users = new Map();
 let matchmaking_queue = [];
+let games = new Map();
+let next_game_id = 0;
 
 function new_username(username, ws) {
     // Check the username fits formatting
@@ -52,7 +68,7 @@ function new_username(username, ws) {
         return false;
 
     // valid username. Add to list
-    users.set(username, { username: username, ws: ws });
+    users.set(username, { username: username, ws: ws, ready: false });
     return true;
 }
 
@@ -66,15 +82,47 @@ function start_matchmaking(username) {
         let first_user = users.get(matchmaking_queue.pop());
         let second_user = users.get(matchmaking_queue.pop());
 
+        let game_id = next_game_id++;
+        let game_data = {
+            users: [first_user.username, second_user.username],
+            x: 100,
+            y: 100,
+            vx: 0,
+            vy: 0,
+            ly: 100,
+            ry: 100
+        };
+        
+        games.set(game_id, game_data);
+
         console.log("Matched " + first_user.username + " with " + second_user.username);
 
         first_user.ws.send(JSON.stringify({
             type: "match",
-            username: second_user.username
+            username: second_user.username,
+            game_id: game_id
         }));
         second_user.ws.send(JSON.stringify({
             type: "match",
-            username: first_user.username
+            username: first_user.username,
+            game_id: game_id
         }));
     }
+}
+
+function start_game(game_id) {
+    console.log("starting game " + game_id);
+
+    let game = games.get(game_id);
+    let first_user = users.get(game.users[0]);
+    let second_user = users.get(game.users[1]);
+
+    first_user.ws.send(JSON.stringify({
+        type: "start",
+        is_left: true
+    }));
+    second_user.ws.send(JSON.stringify({
+        type: "start",
+        is_left: false
+    }));
 }
